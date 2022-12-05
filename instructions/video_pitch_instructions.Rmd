@@ -1,0 +1,35 @@
+---
+title: "Instructions for video pitches"
+author: "Kai Puolamäki"
+date: "22 November 2022"
+output: pdf_document
+urlcolor: blue
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+Please make a 90-180 second video about your term project and submit it in Moodle at the latest on 14 December! 
+
+The video should contain a short pitch about your term project solution in which you briefly tell about:
+
+* Overview of your approach
+* Classification algorithm chosen
+* Steps you took to select good features and model parameters
+* Summary of your results
+* Any insights 
+
+You can, for example, prepare a couple of slides to support your presentation. Make sure that the full names (=first name + surname) of your group members and the name of your group (=as in Moodle) are visible on the first slide - or with whatever your video starts. When making the video, you can assume that the audience is familiar with the topic and setup: the audience is your fellow students who have done the same task also themselves.
+
+Please record your video in mp4 format, e.g., by using [Zoom](https://helpdesk.it.helsinki.fi/en/help/10890) (notice that you may need to sign in to Zoom with your University of Helsinki credentials to have the full functionality! Logging in with the client program: Select Sign in with SSO. The address in the window that opens should be helsinki.zoom.us. Click Continue.). Another alternative is [Screencast-O-Matic](https://helpdesk.it.helsinki.fi/en/help/10908). 
+
+Additionally, we will ask selected term project groups to present their work in the 16 December lecture. You do not need to prepare this video if we ask you to present your work on 16 December (but you can, if you want to).
+
+The video presentation contributes to the grading of the term project.
+
+The video pitch addresses the following learning objective: *"You can explain and report your machine learning approaches and solutions to your peers and future colleagues understandably and coherently."*
+
+Everyone should view the video pitches of at least five other groups before the 16 December lecture.
