@@ -10,16 +10,6 @@ npf_test <- read.csv("npf_test_hidden.csv")
 rownames(npf) <- npf[, "date"]
 npf <- npf[, -c((1:2), 4)]
 
-# Create variable class2 where the value is "event" if there was an NPF event
-# and "nonevent" otherwise.
-npf$class2 <- factor("event", levels = c("nonevent", "event"))
-npf$class2[npf$class4 == "nonevent"] <- "nonevent"
-
-npf_test$class2 <- factor("event", levels = c("nonevent", "event"))
-npf_test$class2[npf_test$class4 == "nonevent"] <- "nonevent"
-
-# Remove variable class4 because predicting will be done on variable class2
-npf <- npf[, -1]
 
 # Some helpful functions
 accuracy <- function(real, pred) {
@@ -27,14 +17,55 @@ accuracy <- function(real, pred) {
 }
 
 # Create a linear model
-model <- glmnet(class2 ~ ., npf, family = "binomial", alpha = 1)
+model <- glmnet(class4 ~ ., npf, family = "multinomial", alpha = 0, lambda = 0.01)
 
-# Predict class2 on test data
-predicted <- predict(model, newdata = npf, type = "response")
-predicted_classes <- c("nonevent", "event")[1 + (predicted > 0.5)]
+coefficients(model)
+
+# Create variable class2 where the value is "event" if there was an NPF event
+# and "nonevent" otherwise.
+npf$class2 <- factor("event", levels = c("nonevent", "event"))
+npf$class2[npf$class4 == "nonevent"] <- "nonevent"
+
+# Predict class4 on training data
+predicted <- predict(model, newdata = npf, type = "response")[,,1]
+
+predicted_class4 <- c()
+predicted_class2 <- c()
+predicted_probs <- c()
+for (i in 1:length(predicted[, 1])) {
+    pred_class <- colnames(predicted)[which.max(predicted[i, ])]
+    predicted_class4 <- c(predicted_class4, pred_class)
+    event_prob <- 1 - predicted[i, 4]
+    predicted_probs <- c(predicted_probs, event_prob)
+    predicted_class2 <- c(predicted_class2, c("nonevent", "event")[1 + (event_prob > 0.5)])
+}
+
+acc <- accuracy(npf$class4, predicted_class4)
+
+cat("Multiclass accuracy: ")
+cat(acc)
+cat("\n")
 
 
-acc <- accuracy(npf$class2, predicted_classes)
+binary_acc <- accuracy(npf$class2, predicted_class2)
+
+cat("Binary accuracy: ")
+cat(binary_acc)
+cat("\n")
+
+# Predict class4 on test data
+predicted <- predict(model, newdata = npf_test, type = "response")[,,1]
+
+predicted_class4 <- c()
+predicted_class2 <- c()
+predicted_probs <- c()
+for (i in 1:length(predicted[, 1])) {
+    pred_class <- colnames(predicted)[which.max(predicted[i, ])]
+    predicted_class4 <- c(predicted_class4, pred_class)
+    event_prob <- 1 - predicted[i, 4]
+    predicted_probs <- c(predicted_probs, event_prob)
+    predicted_class2 <- c(predicted_class2, c("nonevent", "event")[1 + (event_prob > 0.5)])
+}
 
 
-write.table(acc, "answers.csv", row.names=F, quote=F, col.names=F)
+write.csv(data.frame(class4=predicted_class4, p=predicted_probs), "answers.csv", row.names=F, quote=F)
