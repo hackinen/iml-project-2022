@@ -1,5 +1,7 @@
 options(error = function() traceback(3))
 
+set.seed(100500)
+
 library(glmnet)
 library(glmnetUtils)
 
@@ -11,28 +13,94 @@ rownames(npf) <- npf[, "date"]
 npf <- npf[, -c((1:2), 4)]
 
 
+# Split training data to training and validation sets
+idx <- sample.int(nrow(npf), nrow(npf) / 5)
+npf_train <- npf[-idx, ]
+npf_val <- npf[idx, ]
+
+
 # Some helpful functions
 accuracy <- function(real, pred) {
     sum(as.numeric(real == pred)) / length(pred)
 }
 
-# Create a linear model
-model <- glmnet(class4 ~ ., npf, family = "multinomial", alpha = 0, lambda = 0.01)
+pred <- function(mod, data) {
+    predicted <- predict(mod, newdata = data, type = "response")[,,1]
 
-# Predict class4 on training data
-predicted <- predict(model, newdata = npf, type = "response")[,,1]
+    predicted_class4 <- c()
 
-predicted_class4 <- c()
-predicted_probs <- c()
-for (i in 1:length(predicted[, 1])) {
-    pred_class <- colnames(predicted)[which.max(predicted[i, ])]
-    predicted_class4 <- c(predicted_class4, pred_class)
-    event_prob <- 1 - predicted[i, 4]
-    predicted_probs <- c(predicted_probs, event_prob)
+    for (i in 1:length(predicted[, 1])) {
+        pred_class <- colnames(predicted)[which.max(predicted[i, ])]
+        predicted_class4 <- c(predicted_class4, pred_class)
+    }
+
+    predicted_class4
 }
 
-acc <- accuracy(npf$class4, predicted_class4)
+# Create a linear model
+model <- glmnet(class4 ~ ., npf_train, family = "multinomial", alpha = 0, lambda = 0.1)
 
-cat("Multiclass accuracy: ")
+# Predict class4 on training data
+acc <- accuracy(npf_train$class4, pred(model, npf_train))
+
+cat("Multiclass accuracy on training data: ")
 cat(acc)
+cat("\n")
+
+
+# Predict class4 on validation data
+acc <- accuracy(npf_val$class4, pred(model, npf_val))
+
+cat("Multiclass accuracy on validation data: ")
+cat(acc)
+cat("\n")
+
+
+# Let's examine our method using cross-validation
+
+# Create k data splits roughly equal size
+kpart <- function(n, k) {
+    rep_len(1:k, length.out = n)
+}
+
+crossval <- function(
+               formula,
+               data,
+               model = lm,
+               n = nrow(data),
+               k = 10, # number of cross-validation folds
+               split = kpart(n, k),
+               ## function to train a model on data
+               train = function(data) model(formula, data = data, family = "multinomial", alpha = 0, lambda = 0.1),
+               ## function to make predictions on the trained model
+               pred = function(model, data) predict(model, newdata = data, type = "response"))
+{
+    yhat <- NULL
+    for (i in 1:k) {
+        ## go through all folds, train on other folds, and make a prediction
+        mod <- train(data[split != i, ])
+        if (is.null(yhat)) {
+            ## initialise yhat to something of correct data type,
+            yhat <- pred(mod, data)
+        } else {
+            yhat[split == i] <- pred(mod, data[split == i, ])
+        }
+    }
+    
+    cv_pred <- yhat[, , 1]
+    predicted_class4 <- c()
+    for (i in 1:length(cv_pred[, 1])) {
+        pred_class <- colnames(cv_pred)[which.max(cv_pred[i, ])]
+        predicted_class4 <- c(predicted_class4, pred_class)
+    }
+    predicted_class4
+}
+cv_predicted <- crossval(class4 ~ ., npf, glmnet, k = length(npf$class4))
+
+
+
+cv_acc <- accuracy(npf$class4, cv_predicted)
+
+cat("CV accuracy: ")
+cat(cv_acc)
 cat("\n")
