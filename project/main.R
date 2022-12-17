@@ -121,7 +121,7 @@ cat("\n")
 
 
 library(tcltk)
-quartz()     #Use X11() or quartz() if on linux or mac.
+quartz()
 plot(
     res[1,],
     res[3,],

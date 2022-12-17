@@ -23,7 +23,7 @@ In this report we present an R implementation of a multi-class classifier to pre
 
 The objective of this report is to present a classifier to solve the aforesaid task and analyze the results critically. We chose as our classifier a multi-class classifier that uses logistic regression with RIDGE regularization. The classifier was trained on a dataset containing various atmospheric parameters (such as temperature, CO2 measurements, etc.) on multiple days throughout the years 2000-2011. 
 
-<!-- tähän kappale tuloksista -->
+Our final model managed to get an accuracy of $0.75$ on validation data randomly chosen from the given training data and a 5-fold cross-validation accuracy of $0.6857$ calculated on the complete training data. 
 
 The contents of the report are as follows. First, we discuss the methods we used to choose the classification model, explain the concept of linear regression briefly and go through what kind of feature selection was done. Secondly, we analyze the results of our classifier. Lastly, we conclude the analysis, discuss the results and provide ideas what could be done to improve the classification results.
 
@@ -51,7 +51,7 @@ In this project, we use linear regression to predict the probabilities of NPF ev
 
 
 <!-- pros and cons of linear regression in this task -->
-Linear regression might not be the the optimal classifier for this task, but provides better values than just guessing the class of a given day.
+Linear regression is conceptually simple and it's therefore easy to understand and easy to implement and use. Despite it's simplicity it can be very powerful and many more sophisticated classifiers use linear regression as a base [@james2013introduction]. On the other hand, linear regression might not be suitable for all tasks "as is", but might need some modifications. Linear regression might not be the the optimal classifier for this task, but seemed to perform relatively well as our results show.
 
 ## 2.2 Data Analysis
 
@@ -99,27 +99,24 @@ The results show that our classifier appears to be working at least better than 
 
 We did also run the accuracy calculation on the now-released test data with correct labels. We did not use this data in model selection or optimization but instead did this afterwards to get some additional information on our model's performance for the purposes of this report. The accuracy on test data was $0.6974093$.
 
-Lastly we can take a look at our results in the challenge. Our results in all regards were slightly above average and based on the ROC graph we were strongly in the "too close to call" area with the top performers in the binary accuracy category even though we optimized our model for multinomial classification. When we take a look at our multi-class accuracy from the challenge submission and compare it to our most recent multi-class accuracy calculated on the test data, we see that they are exactly the same. This is interesting, because we managed to improve cross-validation accuracy and accuracy on validation data when we optimized model parameters after making our challenge submission. We suspect, that using a different performance metric, such as perplexity for example, could have made the performance difference distinguishable between these two revisions. Lack of time prevented us from doing further investigation into the matter.
+Lastly we can take a look at our results in the challenge. Our results in all regards were slightly above average and based on the statistical significance analysis of the challenge results we were strongly in the "too close to call" area with the top performers in the binary accuracy category even though we optimized our model for multinomial classification. When we take a look at our multi-class accuracy from the challenge submission and compare it to our most recent multi-class accuracy calculated on the test data, we see that they are exactly the same. This is interesting, because we managed to improve cross-validation accuracy and accuracy on validation data when we optimized model parameters after making our challenge submission. We suspect, that using a different performance metric, such as perplexity for example, could have made the performance difference distinguishable between these two revisions. Lack of time prevented us from doing further investigation into the matter.
 
 
 
 # 4. Discussion
 
-<!-- mimmoset tulokset oli -->
-Overall, this linear regression model implemented with *glmnet* in R gives fairly good results for the classification task of predicting if different types of new particle formation events occur on a given day. There are still possible ways to refine the implementation so that the accuracy and cross-validation accuracy would be even better.
-<!-- mitä voi päätellä tuloksista -->
-
-<!-- mitä olisi voinut parantaa / tehdä toisin -->
 Our analysis of the results gives an overview of the goodness of our model, but more estimates could have been calculated. For example, we did not calculate the perplexity of the model on the validation data. Additionally, the individual accuracies of the predicted classes Ia, Ib, II and nonevent could have also been calculated and analyzed.
 
 We would also have liked to do comparison on different classification models, but from pretty far on saw that this might not be possible due to the limited time window for completing this project. By implementing a few classifiers more, we could have compared the accuracies of these classifiers and chosen the best one out of these. The pros and cons of different classifiers could also have been discussed.
 
-All in all, 
+Overall, this linear regression model implemented with *glmnet* in R gives fairly good results for the classification task of predicting if different types of new particle formation events occur on a given day. There are still possible ways to refine the implementation so that the accuracy and cross-validation accuracy would be even better.
+
+The term project was a nice way to recap and apply information learned on the course. 
 
 
 # 6. Grading
 
-When considering all aspects of this project, we think we did rather well. We recognize, that our time limitations have affected the scale of this project. We did not have time to analyze our model and the results as widely as may have been possible, but the analysis that we made was done thoroughly. So, we think that all that is expalained on this report, has been done rather well. Our classifier may not be the most sophisticated, but it works sufficiently well (and the goodness of the classifier also does not affect the grading). We have provided answers for all the required questions from the term project description in this report.
+When considering all aspects of this project, we think we did rather well. We recognize, that our time limitations have affected the scale of this project. We did not have time to analyze our model and the results as widely as may have been possible, but the analysis that we made was done thoroughly. So, we think that all that is explained on this report, has been done rather well. Our classifier may not be the most sophisticated, but it works sufficiently well (and the goodness of the classifier also does not affect the grading). We have provided answers for all the required questions from the term project description in this report.
 
 This report shows that we have a good understanding on the topics of the course. We understand the perks as well as the limitations of our chosen classification method, and we have analyzed the results critically. The parts we did not have time for have also been mentioned to show that our understanding of the task at hand does not limit only to the contents of this report. The report has been written in a clear manner and it follows the scientific style of writing.
 
@@ -135,20 +132,28 @@ Our suggestion for our grade is $4$. We stuck to our schedule really well and we
 \newpage
 # Appendix
 
-The R implementation of our multi-class classifier is provided here.
+The R implementation of our multi-class classifier is provided here. It does not contain all the intermediary steps in acquiring the results but should give a rough idea of our methodology.
 
 ```{r, eval=F}
 options(error = function() traceback(3))
+
+set.seed(100500)
 
 library(glmnet)
 library(glmnetUtils)
 
 npf <- read.csv("npf_train.csv")
-npf_test <- read.csv("npf_test_hidden.csv")
+npf_test <- read.csv("npf_test.csv")
 
 # Remove columns "id", "date" and "partlybad" and set dates as rownames
 rownames(npf) <- npf[, "date"]
 npf <- npf[, -c((1:2), 4)]
+
+
+# Split training data to training and validation sets
+idx <- sample.int(nrow(npf), nrow(npf) / 5)
+npf_train <- npf[-idx, ]
+npf_val <- npf[idx, ]
 
 
 # Some helpful functions
@@ -156,59 +161,121 @@ accuracy <- function(real, pred) {
     sum(as.numeric(real == pred)) / length(pred)
 }
 
+pred <- function(mod, data) {
+    predicted <- predict(mod, newdata = data, type = "response")[,,1]
+
+    predicted_class4 <- c()
+
+    for (i in 1:length(predicted[, 1])) {
+        pred_class <- colnames(predicted)[which.max(predicted[i, ])]
+        predicted_class4 <- c(predicted_class4, pred_class)
+    }
+
+    predicted_class4
+}
+
+# Create k data splits roughly equal size
+kpart <- function(n, k) {
+    rep_len(1:k, length.out = n)
+}
+
+crossval <- function(
+               formula,
+               data,
+               model = lm,
+               lambda = 1,
+               n = nrow(data),
+               k = 10, # number of cross-validation folds
+               split = kpart(n, k),
+               ## function to train a model on data
+               train = function(data) model(formula, data = data, family = "multinomial", alpha = 0.5, lambda = lambda),
+               ## function to make predictions on the trained model
+               pred = function(model, data) predict(model, newdata = data, type = "response"))
+{
+    yhat <- NULL
+    for (i in 1:k) {
+        ## go through all folds, train on other folds, and make a prediction
+        mod <- train(data[split != i, ])
+        if (is.null(yhat)) {
+            ## initialise yhat to something of correct data type,
+            yhat <- pred(mod, data)
+        } else {
+            yhat[split == i] <- pred(mod, data[split == i, ])
+        }
+    }
+
+    cv_pred <- yhat[, , 1]
+    predicted_class4 <- c()
+    for (i in 1:length(cv_pred[, 1])) {
+        pred_class <- colnames(cv_pred)[which.max(cv_pred[i, ])]
+        predicted_class4 <- c(predicted_class4, pred_class)
+    }
+    predicted_class4
+}
+
 # Create a linear model
-model <- glmnet(class4 ~ ., npf, family = "multinomial", alpha = 0, lambda = 0.01)
+models <- seq(from = 0.0045, to = 0.04, length.out = 20)
 
-coefficients(model)
+res <- sapply(models, function(lambda) {
+    model = glmnet(class4 ~ ., npf_train, family = "multinomial", alpha = 0.5, lambda = lambda)
+    # Predict class4 on training data
+    acc_train <- accuracy(npf_train$class4, pred(model, npf_train))
 
-# Create variable class2 where the value is "event" if there was an NPF event
-# and "nonevent" otherwise.
-npf$class2 <- factor("event", levels = c("nonevent", "event"))
-npf$class2[npf$class4 == "nonevent"] <- "nonevent"
+    # Predict class4 on validation data
+    acc_val <- accuracy(npf_val$class4, pred(model, npf_val))
 
-# Predict class4 on training data
-predicted <- predict(model, newdata = npf, type = "response")[,,1]
+    # Let's examine our method using cross-validation
+    cv_predicted <- crossval(class4 ~ ., npf, glmnet, k = 5, lambda = lambda)
 
-predicted_class4 <- c()
-predicted_class2 <- c()
-predicted_probs <- c()
-for (i in 1:length(predicted[, 1])) {
-    pred_class <- colnames(predicted)[which.max(predicted[i, ])]
-    predicted_class4 <- c(predicted_class4, pred_class)
-    event_prob <- 1 - predicted[i, 4]
-    predicted_probs <- c(predicted_probs, event_prob)
-    predicted_class2 <- c(predicted_class2, c("nonevent", "event")[1 + (event_prob > 0.5)])
-}
+    cv_acc <- accuracy(npf$class4, cv_predicted)
 
-acc <- accuracy(npf$class4, predicted_class4)
 
-cat("Multiclass accuracy: ")
-cat(acc)
+    c(
+        lambda = lambda,
+        acc_train = acc_train,
+        acc_val = acc_val,
+        cv_acc = cv_acc
+    )
+})
+
+cat("Highest accuracy on validation data: ")
+cat(max(res[3,]))
+cat("\n")
+
+cat("Highest CV accuracy: ")
+cat(max(res[4,]))
 cat("\n")
 
 
-binary_acc <- accuracy(npf$class2, predicted_class2)
+# Check how our model performs on the actual test data. This is for report analysis only.
+model = glmnet(class4 ~ ., npf_train, family = "multinomial", alpha = 0.5, lambda = 0.012)
+acc_test <- accuracy(npf_test$class4, pred(model, npf_test))
 
-cat("Binary accuracy: ")
-cat(binary_acc)
+cat("Accuracy on test data: ")
+cat(acc_test)
 cat("\n")
 
-# Predict class4 on test data
-predicted <- predict(model, newdata = npf_test, type = "response")[,,1]
-
-predicted_class4 <- c()
-predicted_class2 <- c()
-predicted_probs <- c()
-for (i in 1:length(predicted[, 1])) {
-    pred_class <- colnames(predicted)[which.max(predicted[i, ])]
-    predicted_class4 <- c(predicted_class4, pred_class)
-    event_prob <- 1 - predicted[i, 4]
-    predicted_probs <- c(predicted_probs, event_prob)
-    predicted_class2 <- c(predicted_class2, c("nonevent", "event")[1 + (event_prob > 0.5)])
-}
 
 
-write.csv(data.frame(class4=predicted_class4, p=predicted_probs), "answers.csv", row.names=F, quote=F)
+library(tcltk)
+quartz()
+plot(
+    res[1,],
+    res[3,],
+    type = 'l',
+    xlab = "Lambda",
+    ylab = "Accuracy",
+    ylim = c(
+        min(c(res[3, ], res[4, ])),
+        max(c(res[3, ], res[4, ]))
+    ),
+    col = "red"
+)
+lines(res[1,], res[4,], col = "blue")
+legend(0.03, 0.75, legend=c("Training data", "Cross-validation"),
+       col=c("red", "blue"), lty=c(1,1), cex=0.8)
+prompt  <- "hit spacebar to close plots"
+capture <- tk_messageBox(message = prompt)
 ```
 
 
