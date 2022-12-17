@@ -25,7 +25,7 @@ The objective of this report is to present a classifier to solve the aforesaid t
 
 <!-- tähän kappale tuloksista -->
 
-The contents of the report are as follows. First, we discuss the methods we used to choose the classification model, explain the concept of linear regression briefly and go through what kind of feature selection was done. Secondly, we analyze the results of our classifier. Then, we discuss the results and what could be done to improve the results. Lastly, we conclude the analysis.
+The contents of the report are as follows. First, we discuss the methods we used to choose the classification model, explain the concept of linear regression briefly and go through what kind of feature selection was done. Secondly, we analyze the results of our classifier. Lastly, we conclude the analysis, discuss the results and provide ideas what could be done to improve the classification results.
 
 
 # 2. Methods Used
@@ -108,15 +108,11 @@ The results show that our classifier appears to be working at least better than 
 # 4. Discussion
 
 <!-- mimmoset tulokset oli -->
-
+Overall, this linear regression model implemented with *glmnet* in R gives fairly good results for the classification task of predicting if different types of new particle formation events occur on a given day. There are still possible ways to refine the implementation so that the accuracy and cross-validation accuracy would be even better.
 <!-- mitä voi päätellä tuloksista -->
 
 <!-- mitä olisi voinut parantaa / tehdä toisin -->
 We would have liked to do comparison on different classification models, but from pretty far on saw that this might not be possible due to the limited time window for completing this project. By implementing a few classifiers more, we could have compared the accuracies of these classifiers and chosen the best one out of these. The pros and cons of different classifiers could also have been discussed.
-
-# 5. Conclusion
-
-Overall, this linear regression model implemented with *glmnet* in R gives fairly good results for the classification task of predicting if different types of new particle formation events occur on a given day. There are still possible ways to refine the implementation so that the accuracy and cross-validation accuracy would be even better.
 
 
 # 6. Grading
