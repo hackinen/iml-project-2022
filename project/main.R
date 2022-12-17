@@ -37,27 +37,6 @@ pred <- function(mod, data) {
     predicted_class4
 }
 
-# Create a linear model
-model <- glmnet(class4 ~ ., npf_train, family = "multinomial", alpha = 0, lambda = 0.1)
-
-# Predict class4 on training data
-acc <- accuracy(npf_train$class4, pred(model, npf_train))
-
-cat("Multiclass accuracy on training data: ")
-cat(acc)
-cat("\n")
-
-
-# Predict class4 on validation data
-acc <- accuracy(npf_val$class4, pred(model, npf_val))
-
-cat("Multiclass accuracy on validation data: ")
-cat(acc)
-cat("\n")
-
-
-# Let's examine our method using cross-validation
-
 # Create k data splits roughly equal size
 kpart <- function(n, k) {
     rep_len(1:k, length.out = n)
@@ -67,11 +46,12 @@ crossval <- function(
                formula,
                data,
                model = lm,
+               lambda = 1,
                n = nrow(data),
                k = 10, # number of cross-validation folds
                split = kpart(n, k),
                ## function to train a model on data
-               train = function(data) model(formula, data = data, family = "multinomial", alpha = 0, lambda = 0.1),
+               train = function(data) model(formula, data = data, family = "multinomial", alpha = 0.5, lambda = lambda),
                ## function to make predictions on the trained model
                pred = function(model, data) predict(model, newdata = data, type = "response"))
 {
@@ -86,7 +66,7 @@ crossval <- function(
             yhat[split == i] <- pred(mod, data[split == i, ])
         }
     }
-    
+
     cv_pred <- yhat[, , 1]
     predicted_class4 <- c()
     for (i in 1:length(cv_pred[, 1])) {
@@ -95,12 +75,56 @@ crossval <- function(
     }
     predicted_class4
 }
-cv_predicted <- crossval(class4 ~ ., npf, glmnet, k = length(npf$class4))
+
+# Create a linear model
+models <- seq(from = 0.0045, to = 0.0175, length.out = 20)
+
+res <- sapply(models, function(lambda) {
+    model = glmnet(class4 ~ ., npf_train, family = "multinomial", alpha = 0.5, lambda = lambda)
+    # Predict class4 on training data
+    acc_train <- accuracy(npf_train$class4, pred(model, npf_train))
+
+    # Predict class4 on validation data
+    acc_val <- accuracy(npf_val$class4, pred(model, npf_val))
+
+    # Let's examine our method using cross-validation
+    cv_predicted <- crossval(class4 ~ ., npf, glmnet, k = 5, lambda = lambda)
+
+    cv_acc <- accuracy(npf$class4, cv_predicted)
 
 
+    c(
+        lambda = lambda,
+        acc_train = acc_train,
+        acc_val = acc_val,
+        cv_acc = cv_acc
+    )
+})
 
-cv_acc <- accuracy(npf$class4, cv_predicted)
-
-cat("CV accuracy: ")
-cat(cv_acc)
+cat("Highest accuracy on validation data: ")
+cat(max(res[3,]))
 cat("\n")
+
+cat("Highest CV accuracy: ")
+cat(max(res[4,]))
+cat("\n")
+
+library(tcltk)
+quartz()     #Use X11() or quartz() if on linux or mac.
+plot(
+    res[1,],
+    res[3,],
+    type = 'l',
+    xlab = "Lambda",
+    ylab = "Accuracy",
+    ylim = c(
+        min(c(res[3, ], res[4, ])),
+        max(c(res[3, ], res[4, ]))
+    ),
+    col = "red"
+)
+lines(res[1,], res[4,], col = "blue")
+legend(0.65, 0.715, legend=c("Training data", "Cross-validation"),
+       col=c("red", "blue"), lty=c(1,1), cex=0.8)
+prompt  <- "hit spacebar to close plots"
+capture <- tk_messageBox(message = prompt)
