@@ -6,7 +6,7 @@ library(glmnet)
 library(glmnetUtils)
 
 npf <- read.csv("npf_train.csv")
-npf_test <- read.csv("npf_test_hidden.csv")
+npf_test <- read.csv("npf_test.csv")
 
 # Remove columns "id", "date" and "partlybad" and set dates as rownames
 rownames(npf) <- npf[, "date"]
@@ -77,7 +77,7 @@ crossval <- function(
 }
 
 # Create a linear model
-models <- seq(from = 0.0045, to = 0.0175, length.out = 20)
+models <- seq(from = 0.0045, to = 0.04, length.out = 20)
 
 res <- sapply(models, function(lambda) {
     model = glmnet(class4 ~ ., npf_train, family = "multinomial", alpha = 0.5, lambda = lambda)
@@ -109,6 +109,17 @@ cat("Highest CV accuracy: ")
 cat(max(res[4,]))
 cat("\n")
 
+
+# Check how our model performs on the actual test data. This is for report analysis only.
+model = glmnet(class4 ~ ., npf_train, family = "multinomial", alpha = 0.5, lambda = 0.012)
+acc_test <- accuracy(npf_test$class4, pred(model, npf_test))
+
+cat("Accuracy on test data: ")
+cat(acc_test)
+cat("\n")
+
+
+
 library(tcltk)
 quartz()     #Use X11() or quartz() if on linux or mac.
 plot(
@@ -124,7 +135,7 @@ plot(
     col = "red"
 )
 lines(res[1,], res[4,], col = "blue")
-legend(0.65, 0.715, legend=c("Training data", "Cross-validation"),
+legend(0.03, 0.75, legend=c("Training data", "Cross-validation"),
        col=c("red", "blue"), lty=c(1,1), cex=0.8)
 prompt  <- "hit spacebar to close plots"
 capture <- tk_messageBox(message = prompt)
