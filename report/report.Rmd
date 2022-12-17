@@ -78,13 +78,17 @@ $\newline$
 
 The choice of both RIDGE and LASSO as the regularization method was done by simply trying different values by hand for both RIDGE and LASSO regularization and these two together. By manually changing the value of the *alpha* parameter, we noticed that having a 50/50 ratio of LASSO and RIDGE gave us better validation and cross-validation accuracies, than having only LASSO or only RIDGE. We did not try different combinations of *alpha* and *labda* exhaustively, so it is possible that the model can be improved in this respect.
 
-The choice of the *lambda* value in the *glmnet* function was done by examining how the validation accuracy and cross-validation accuracy behave as a function of lambda. We calculated these accuracies iteratively, during each iteration we trained $20$ different models with different *lambda* values. All models had the same *alpha* value, $0.5$. First, we had an educated guess on what scale the *lambda* value should have. We first set a somewhat broad interval of $[0,1]$ for *lambda* and examined how the accuracies behaved (see figure 2). It was evident, that the best accuracies are achieved with a lambda value that is close to $0$.
+The choice of the *lambda* value in the *glmnet* function was done by examining how the validation accuracy and cross-validation accuracy behave as a function of lambda. We calculated these accuracies iteratively, during each iteration we trained $20$ different models with different *lambda* values. All models had the same *alpha* value, $0.5$. First, we had an educated guess on what scale the *lambda* value should have. We first set a somewhat broad interval of $]0,1]$ for *lambda* and examined how the accuracies behaved (see figure 2). It is evident, that the best accuracies are achieved with a lambda value that is close to $0$.
 
 ![Validation accuracy and 5-fold cross-validation accuracy as a function of lambda in an interval from $0$ to $1$.](acc-vs-lambda_1.png){width=70%}
 
 We then examined iteratively two smaller intervals of $20$ lambda values, first the interval of $[0.005,0.040]$ and then the interval of $[0.004,0.018]$. Our experiments showed, that with *lambda* value of approximately $0.012$, both the validation accuracy as well as the 5-fold cross-validation accuracy peaked. The value $\lambda = 0.012$ was then chosen as our final value for the regression model. Figure 3 illustrates the behaviour if the two accuracy values as a function of lambda on the second interval of $[0.005,0.040]$. 
 
 ![Validation accuracy and 5-fold cross-validation accuracy as a function of lambda in an interval from $0.005$ to $0.040$.](acc-vs-lambda_2.png){width=70%}
+
+An even better combination of the model parameters *alpha* and *lambda* could have been acquired with a more automated method. Especially, our method for choosing *alpha* is not as convincing as our method of choosing *lambda* for the given *alpha*. The main reason we did not loop through many different combinations of these model parameters was that it would have been time-consuming. Thus, our choice of *alpha* may be a fault in our model, since we do not have solid evidence backing this choice.
+
+
 
 
 # 3. Results
