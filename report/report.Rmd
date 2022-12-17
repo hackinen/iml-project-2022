@@ -93,16 +93,14 @@ An even better combination of the model parameters *alpha* and *lambda* could ha
 
 # 3. Results
 
-The results show that our classifier appears to be working at least better than a 50/50-classifier. 
+We trained our model by taking a random 80/20 split of the given training data and used the $80%$ portion for training and $20%$ portion for validation. The performance measure we used was accuracy, which is the ratio of correctly labeled data points in the total number of data points.
 
+The results show that our classifier appears to be working at least better than a 50/50-classifier. Most of our model optimization was done by optimizing the alpha and lambda parameters of glmnet that guide the regularization. For this we used the accuracy values when predicting on validation data as well as 5-fold cross-validation accuracy. The best accuracy on validation data we managed to get was $0.75$ and the best cross-validation accuracy was $0.6857$. The final values for alpha and lambda parameters were $0.5$ and $0.012$, respectively. Using this alpha value means that we took advantage of both Lasso and Ridge regularization.
 
-- cross-validation and cross-validation error
-- accuracy and perplexity
-- how the regularization (LASSO, RIDGE) affects the resulting accuracy and perplexity
-- other types of models and how they perform in respect to each other (**if we have time**)
-  - choose the best out of these as our classifier
-  
-<!-- choise of model parameters (lasso ridge ja niiden arvot glmnet-funktiossa, miten vaikuttaa) -->
+We did also run the accuracy calculation on the now-released test data with correct labels. We did not use this data in model selection or optimization but instead did this afterwards to get some additional information on our model's performance for the purposes of this report. The accuracy on test data was $0.6974093$.
+
+Lastly we can take a look at our results in the challenge. Our results in all regards were slightly above average and based on the ROC graph we were strongly in the "too close to call" area with the top performers in the binary accuracy category even though we optimized our model for multinomial classification. When we take a look at our multi-class accuracy from the challenge submission and compare it to our most recent multi-class accuracy calculated on the test data, we see that they are exactly the same. This is interesting, because we managed to improve cross-validation accuracy and accuracy on validation data when we optimized model parameters after making our challenge submission. We suspect, that using a different performance metric, such as perplexity for example, could have made the performance difference distinguishable between these two revisions. Lack of time prevented us from doing further investigation into the matter.
+
 
 
 # 4. Discussion
