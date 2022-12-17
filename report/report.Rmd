@@ -19,7 +19,7 @@ The objective of this report is to present a classifier to solve the aforesaid t
 
 <!-- tähän kappale tuloksista -->
 
-The contents of the report are as follows. First, we discuss the methods we used to choose the classification model, what kind of feature selection was done and explain the concept of linear regression briefly. Secondly, we analyze the results of our classifier. Then, we discuss the results and what could be done to improve the results. Lastly, we conclude the analysis.
+The contents of the report are as follows. First, we discuss the methods we used to choose the classification model, explain the concept of linear regression briefly and go through what kind of feature selection was done. Secondly, we analyze the results of our classifier. Then, we discuss the results and what could be done to improve the results. Lastly, we conclude the analysis.
 
 
 # 2. Methods Used
@@ -49,11 +49,27 @@ In this project, we use linear regression to predict the probabilities of NPF ev
 
 ## 2.2 Data Analysis
 
-Our data analysis was mainly done by physically looking at the data through Excel. Our understanding of the data, as well as the chosen linear regression model, relied also on our previous knowledge of it throughout the exercise sets of the Introduction to Machine Learning course. 
+Our data analysis was mainly done by physically examining the data through Excel. Our understanding of the data, as well as the chosen linear regression model, relied also on our previous knowledge of it throughout the exercise sets of the Introduction to Machine Learning course [@ex1]. 
 
-<!-- joku plottti datasta vaikka ekalta viikolta -->
+The most evident feature selection was done after eyeing the data through Excel. We excluded the columns *date*, *id* and *partlybad*, because they give no actual information to our regression model. The columns *date* and *id* are self-explanatory, and the column *partlybad* was removed because it is always FALSE, and therefore offers no notable information.
 
-<!-- standard deviationit ehkä pois jos paremmat tulokset???? -->
+After that, tried analyzing the data more thoroughly with R. We examined the means of both the mean values as well as the standard deviation values of the atmospheric parameters and plotted them. This did not, however, give us any apparent information of the behaviour of the data set. We also examined the correlation between some of the atmospheric parameters, as was done in the exercise set one [@ex1]. We saw that there is a linear correlation between the mean values of the same measured entity, for example the mean carbon dioxide measurements from different heights This example is displayed in the plot below for CO2 measurements at heights $1.68m$, $3.36m$, $0.42m$ and $5.04m$).
+
+```{r, echo=F}
+#Looking at the data and doing feature selcetion
+
+npf <- read.csv("../project/npf_train.csv")
+
+# Remove columns "id", "date" and "partlybad" and set dates as rownames
+rownames(npf) <- npf[, "date"]
+npf <- npf[, -c((1:2), 4)]
+
+#look at the correlation
+pairs((npf[, c(2,4,6,8)]))
+```
+
+This suggests that the measurements for the same parameter (such as CO2 in this example) form colinear groups in the data. This means, that the measurements inside one colinear group give out no additional information for a classification model and, thus, only one measurement from a colinear group can be chosen as a covariate for the model without losing any data [@james2013introduction]. The linear regression implementation that we chose, can do this automatically and, therefore, we did not have to do any data manipulation conserning the colinear groups.
+
 
 ## 2.3 Implementation
 
@@ -67,9 +83,7 @@ $\newline$
 
 The choice of RIDGE as the regularization method was done by simply trying different values by hand for both RIDGE and LASSO regularization. By manually changing the values of the *alpha* and *lambda* parameters in the glmnet-model in R, we came to the conclusion, that the better values for the accuracy were achieved by using RIDGE regularization. We chose regularization over no regularization, because by testing both, we noticed that the accuracy was better with regularization.
 
-We did some feature selection before running our classification algorithm. We excluded the columns *date*, *id* and *partlybad*, because they give no actual information to our regression model. The columns *date* and *id* are self-explanatory, and the column *partlybad* was removed because it is always FALSE, and therefore offers no notable information.
-
-
+<!-- tänne RIdgen ja lasson valinnasta -->
 
 
 # 3. Analysis
@@ -97,12 +111,12 @@ The results show that our classifier appears to be working at least better than 
 
 # 5. Conclusion
 
-*To be added.*
+Overall, this linear regression model implemented with *glmnet* in R gives fairly good results for the classification task of predicting if different types of new particle formation events occur on a given day. There are still possible ways to refine the implementation so that the accuracy and cross-validation accuracy would be even better.
 
 
 # 6. Grading
 
-Overall, we think our project went rather well. We recognize, that our time limitations have affected the scale of this project. We did not have time to analyze the results as widely as may have been possible, but the analysis that we made was done thoroughly. So, we think that all that is expalained on this report, has been done rather well. Our classifier may not be the most sophisticated, but it works sufficiently well (and the goodness of the classifier also does not affect the grading). We have provided answers for all the required questions from the term project description in this report.
+When considering all aspects of this project, we think we did rather well. We recognize, that our time limitations have affected the scale of this project. We did not have time to analyze the results as widely as may have been possible, but the analysis that we made was done thoroughly. So, we think that all that is expalained on this report, has been done rather well. Our classifier may not be the most sophisticated, but it works sufficiently well (and the goodness of the classifier also does not affect the grading). We have provided answers for all the required questions from the term project description in this report.
 
 This report shows that we have a good understanding on the topics of the course. We understand the perks as well as the limitations of our chosen classification method, and we have analyzed the results critically. The parts we did not have time for have also been mentioned to show that our understanding of the task at hand does not limit only to the contents of this report. The report has been written in a clear manner and it follows the scientific style of writing.
 
